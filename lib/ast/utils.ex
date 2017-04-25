@@ -228,25 +228,119 @@ defmodule Plymio.Ast.Utils do
     asts
   end
 
-  defp asts_enumerate(asts) do
+  @doc ~S"""
+  `asts_enumerate/1` takes zero (nil), one or more asts, passes each ast to `ast_enumerate/1`, and "flat_maps" the results.
+
+  ## Examples
+
+      iex> nil |> asts_enumerate
+      []
+
+      iex> 1 |> asts_enumerate
+      [1]
+
+      iex> :two |> asts_enumerate
+      [:two]
+
+      iex> [1, nil, :two, nil, "tre"] |> asts_enumerate
+      [1, :two, "tre"]
+
+      iex> quote do
+      ...>   x = 1
+      ...>   y = 2
+      ...>   z = x + y
+      ...> end
+      ...> |> asts_enumerate
+      [quote(do: x = 1), quote(do: y = 2), quote(do: z = x + y)]
+
+      iex> [quote do
+      ...>   x = 1
+      ...>   y = 2
+      ...>   z = x + y
+      ...> end,
+      ...> nil,
+      ...> quote(do: a = 42),
+      ...> nil,
+      ...> quote do
+      ...>   b = 7
+      ...>   c = a - b
+      ...> end]
+      ...> |> asts_enumerate
+      [quote(do: x = 1), quote(do: y = 2), quote(do: z = x + y),
+       quote(do: a = 42), quote(do: b = 7), quote(do: c = a - b)]
+
+      iex> %{a: 1} |> asts_enumerate
+      ** (ArgumentError) expected an ast; got: %{a: 1}
+  """
+
+  @spec asts_enumerate(asts) :: asts
+
+  def asts_enumerate(asts) do
     asts
-    |> List.wrap
-    |> List.flatten
-    |> Stream.reject(&is_nil/1)
+    |> PAH.list_wrap_flat_just
     |> Enum.flat_map(fn ast -> ast_enumerate(ast) end)
   end
 
-  defp ast_enumerate(ast) when is_tuple(ast) do
+  @doc ~S"""
+  `ast_enumerate/1` takes an ast and, if a `:__block__`, "demultiplexes" the list of constituent asts, and returns the list.
 
-    case elem(ast, 0) do
+  If not a  `:__block__`, the ast is returned in a list.
 
-      # if a block the args are the individual "statements"
-      :__block__ -> elem(ast, 2)
+  ## Examples
 
-      # just an ast but must return a list
-      _ -> [ast]
+      iex> 1 |> ast_enumerate
+      [1]
+
+      iex> :two |> ast_enumerate
+      [:two]
+
+      iex> quote do
+      ...>   x = 1
+      ...>   y = 2
+      ...>   z = x + y
+      ...> end
+      ...> |> ast_enumerate
+      [quote(do: x = 1), quote(do: y = 2), quote(do: z = x + y)]
+
+      iex> %{a: 1} |> ast_enumerate
+      ** (ArgumentError) expected an ast; got: %{a: 1}
+
+  """
+
+  @spec ast_enumerate(ast) :: asts
+
+  def ast_enumerate(ast) do
+
+    case Macro.validate(ast) do
+
+      :ok ->
+
+        case ast do
+
+          x when is_tuple(x) ->
+
+            case elem(ast, 0) do
+
+              # if a block the args are the individual "statements"
+              :__block__ -> elem(ast, 2) |> asts_enumerate
+
+                # just an ast but must return a list
+                _ -> [ast]
+
+            end
+
+          _ -> [ast]
+
+        end
+      _ ->
+
+        message = "expected an ast; got: #{inspect ast}"
+        Logger.error message
+        raise ArgumentError, message: message
 
     end
+
+###:ok = Macro.validate(ast)
 
   end
 

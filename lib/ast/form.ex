@@ -36,7 +36,7 @@ defmodule Plymio.Ast.Form do
       %{a: 1, b: 2, c: 3}
 
       iex> ast = %{a: 1, b: 2, c: 3} |> Macro.escape
-      iex> ast |> maybe_ast_realise
+      ...> ast |> maybe_ast_realise
       %{a: 1, b: 2, c: 3}
 
       iex> fun = fn x -> x + 5 end
@@ -113,7 +113,6 @@ defmodule Plymio.Ast.Form do
     #   {k,v} -> {k |> maybe_ast_realise, v |> maybe_ast_realise}
     # end)
     |> Enum.into(%{})
-    ### CALLING MAYBE_AST_REALISE DOES NOTHING???? does not call MAP implementation
 
     |> maybe_ast_realise
 
@@ -197,7 +196,7 @@ defmodule Plymio.Ast.Form do
 
   @doc ~S"""
   Takes a maybe quoted value, realises it using
-  `maybe_ast_realise_map/1`, and  if the result is `{:ok, map}`, returns the map,
+  `maybe_ast_realise_map/1`, and if the result is `{:ok, map}`, returns the map,
   else raises a `BadMapError` exception.
 
       iex> %{a: 1, b: %{b21: 21, b22: 22}, c: 3} |> maybe_ast_realise_map!
@@ -328,8 +327,7 @@ defmodule Plymio.Ast.Form do
       iex> 42 |> maybe_ast_realise_function
       :error
 
-      iex> {:x, 42}
-      ...> |> Macro.escape
+      iex> {:x, 42} |> Macro.escape
       ...> |> maybe_ast_realise_function
       :error
   """
@@ -490,6 +488,26 @@ defmodule Plymio.Ast.Form do
 
   @doc ~S"""
   `maybe_ast_escape/1` escapes (`Macro.escape/1`) any value other than a module attribute or an existing ast (i.e. `Macro.validate/1` returns `:ok`)
+
+  ## Examples
+
+      iex> 42 |> maybe_ast_escape
+      42
+
+      iex> :two |> maybe_ast_escape
+      :two
+
+      iex> %{a: 1} |> maybe_ast_escape
+      {:%{}, [], [a: 1]}
+
+      iex> %{a: 1} |> Macro.escape |> maybe_ast_escape
+      {:%{}, [], [a: 1]}
+
+      iex> [1, %{b: 2}, {:c, 2, :tre}] |> maybe_ast_escape
+      [1, {:%{}, [], [b: 2]}, {:{}, [], [:c, 2, :tre]}]
+
+      iex> [1, %{b: 2}, {:c, 2, :tre}] |> Macro.escape |> maybe_ast_escape
+      [1, {:%{}, [], [b: 2]}, {:{}, [], [:c, 2, :tre]}]
   """
 
   @spec maybe_ast_escape(any) :: Macro.t
@@ -500,17 +518,12 @@ defmodule Plymio.Ast.Form do
     value
   end
 
-  # already a valid ast?
-  def maybe_ast_escape({_,_,_} = value) do
+  # already a valid ast? if not, escape
+  def maybe_ast_escape(value) do
     case value |> Macro.validate do
       :ok -> value
       _ -> value |> Macro.escape
     end
-  end
-
-  # default
-  def maybe_ast_escape(value) do
-    value |> Macro.escape
   end
 
 end

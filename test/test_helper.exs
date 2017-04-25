@@ -241,8 +241,13 @@ defmodule PlymioAstHelpersTest do
 
   def helper_signature_create_tuple(signature, opts \\ []) do
 
+    fun_signature = opts |> Keyword.get(:fun_signature, &PAS.signature_create/2)
+
+    opts = opts
+    |> Keyword.drop([:fun_signature])
+
     signature_asts = signature
-    |> PAS.signature_create(opts)
+    |> fun_signature.(opts)
 
     signature_code = signature_asts
     |> Enum.map(fn ast -> ast |> Macro.to_string end)
@@ -262,6 +267,26 @@ defmodule PlymioAstHelpersTest do
   end
 
   def helper_signature_create_to_string(signature, opts \\ []) do
+
+    signature
+    |> helper_signature_create_tuple(opts)
+    |> elem(1)
+
+  end
+
+  def helper_signature_create_without_defaults_to_string(signature, opts \\ []) do
+
+    opts = opts |> Keyword.put(:fun_signature, &PAS.signature_create_without_defaults/2)
+
+    signature
+    |> helper_signature_create_tuple(opts)
+    |> elem(1)
+
+  end
+
+  def helper_signature_create99_to_string(signature, opts \\ []) do
+
+    opts = opts |> Keyword.put(:fun_signature, &PAS.signature_create99/2)
 
     signature
     |> helper_signature_create_tuple(opts)
@@ -303,24 +328,26 @@ defmodule PlymioAstHelpersTest do
 
   def helper_run_tests_signature1(opts \\ []) do
 
+    helper_call = opts |> Keyword.get(:helper_call, :helper_signature_create_to_string)
+
     test_mapper = fn
 
       [ code_string, signature] when is_binary(code_string) ->
 
-        [c: :helper_signature_create_to_string, v: signature, r: code_string]
+        [c: helper_call, v: signature, r: code_string]
 
      [code_string, signature, opts_set] when is_binary(code_string) ->
 
         opts = @signature_opts_sets |> Map.fetch!(opts_set)
 
-      [c: :helper_signature_create_to_string, v: signature, a: [opts], r: code_string]
+      [c: helper_call, v: signature, a: [opts], r: code_string]
 
     end
 
     [
       test_mapper: test_mapper,
       test_module: __MODULE__,
-    ] ++ opts
+    ] ++ Keyword.drop(opts, [:helper_call])
     |> Harnais.run_tests_default_test_value
 
   end

@@ -7,9 +7,9 @@ plymio\_ast: Utility Functions for ASTs (Quoted Forms)
 Add **plymio\_ast** to your list of dependencies in <span class="underline">mix.exs</span>:
 
     def deps do
-      [{:plymio_ast, "~> 0.1.0"}]
+      [{:plymio_ast, "~> 0.2.0"}]
     end
 
 ## Examples
 
-See the example in the [API Reference](<https://hexdocs.pm/plymio_ast/readme.html>).
+See the example in the [API Reference](https://hexdocs.pm/plymio_ast/api-reference.html)

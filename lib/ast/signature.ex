@@ -244,11 +244,9 @@ defmodule Plymio.Ast.Signature do
 
     default_var = default |> signature_resolve_default(unquotables)
 
-    ast = quote do
+    quote do
       unquote(argument_var) \\ unquote(default_var)
     end
-
-    ast
 
   end
 

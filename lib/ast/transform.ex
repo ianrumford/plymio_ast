@@ -13,10 +13,6 @@ defmodule Plymio.Ast.Transform do
 
   Many of the dsl verbs are implemented by functions in `Plymio.Ast.Utils`.
 
-  ## TO SORT
-
-  LOOKS OK; FINAL REVIEW.
-
   ## Helper Functions for the Doctests
 
   The tests below use helper functions.
@@ -299,7 +295,6 @@ defmodule Plymio.Ast.Transform do
   defp transform_verb(ast, :pipe_after, nil), do: ast
 
   defp transform_verb(ast, :pipe_after, value) do
-    #PAU.asts_pipe([value, ast])
     PAU.asts_pipe(List.wrap(value) ++ [ast])
   end
 

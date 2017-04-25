@@ -1,7 +1,7 @@
-defmodule PlymioAst.Mixfile do
+defmodule Plymio.Ast.Mixfile do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
 
   def project do
     [app: :plymio_ast,
@@ -23,8 +23,9 @@ defmodule PlymioAst.Mixfile do
 
   defp deps do
     [
-      {:harnais, "~> 0.1.0", only: :test},
-      {:ex_doc, "~> 0.14.5", only: :dev}
+      {:plymio_name, "~> 0.1.1"},
+      {:harnais, "~> 0.2.0", only: :test},
+      {:ex_doc, "~> 0.15", only: :dev}
     ]
   end
 
