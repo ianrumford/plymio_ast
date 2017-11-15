@@ -1,4 +1,4 @@
-defmodule PlymioAstFormsDoctest1Test do
+defmodule PlymioAstFormsDoctestTest do
 
   use ExUnit.Case, async: true
   import Plymio.Ast.Form
